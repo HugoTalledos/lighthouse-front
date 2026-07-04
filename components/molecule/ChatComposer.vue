@@ -27,7 +27,7 @@ function handleKeydown(e: KeyboardEvent) {
       v-model="text"
       placeholder="Escribe un mensaje… (Intro para enviar)"
       :disabled="disabled"
-      :max-rows="5"
+      :max-rows="1"
       class="flex-1"
       @keydown="handleKeydown"
     />
