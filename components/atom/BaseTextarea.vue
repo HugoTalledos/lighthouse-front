@@ -31,7 +31,7 @@ watch(() => props.modelValue, () => nextTick(autoResize))
     :value="modelValue"
     :placeholder="placeholder"
     :disabled="disabled"
-    rows="1"
+    :rows="maxRows"
     class="w-full bg-transparent text-text-primary placeholder-text-muted text-sm font-body resize-none focus:outline-none overflow-y-auto transition-colors duration-150 disabled:opacity-40 leading-6"
     @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value); autoResize()"
   />
