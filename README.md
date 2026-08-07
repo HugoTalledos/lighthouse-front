@@ -38,6 +38,30 @@ yarn dev
 bun run dev
 ```
 
+## Chat backend
+
+The chat panel always connects to the Lighthouse backend. Start it from the
+backend project before starting the frontend:
+
+```bash
+cd ../lighthouse_back
+uvicorn src.main:app --reload --workers 1
+```
+
+The frontend uses `http://localhost:8000` for chat by default. Set these
+optional public runtime variables before running `npm run dev` when your
+backend uses a different address or requires an API key:
+
+```bash
+NUXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NUXT_PUBLIC_API_KEY=your-api-key
+npm run dev
+```
+
+`NUXT_PUBLIC_API_KEY` is sent as the `x-api-key` header only when configured.
+Project and playground services retain their existing mock behavior; only chat
+is forced to use the backend.
+
 ## Production
 
 Build the application for production:
