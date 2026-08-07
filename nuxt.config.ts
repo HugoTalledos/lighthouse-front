@@ -15,6 +15,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       useMocks: process.env.NUXT_PUBLIC_USE_MOCKS ?? 'true',
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000',
+      apiKey: process.env.NUXT_PUBLIC_API_KEY ?? '',
     },
   },
 })

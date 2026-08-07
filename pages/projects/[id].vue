@@ -13,7 +13,7 @@ const projectId = route.params.id as string
 const project = ref<Project | undefined>()
 const showPlayground = ref(false)
 
-const { messages, isTyping, fetchMessages, sendMessage } = useChat(projectId)
+const { messages, isTyping, error, fetchMessages, sendMessage } = useChat(projectId)
 const { plan, loading: planLoading, approving, approved, fetchPlan, approvePlan } = usePlayground(projectId)
 
 onMounted(async () => {
@@ -103,6 +103,7 @@ onUnmounted(() => {
         <OrganismChatPanel
           :messages="messages"
           :is-typing="isTyping"
+          :error="error"
           :disabled="isTyping"
           @send="sendMessage"
         />
