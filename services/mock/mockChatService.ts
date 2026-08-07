@@ -54,24 +54,28 @@ const agentResponses = [
 
 let responseIndex = 0
 
-const messageStore = new Map<string, ChatMessage[]>()
+const messageStore = new Map<string, ChatSession>()
 
 export const mockChatService: IChatService = {
   async getConversation(projectId): Promise<ChatSession> {
     await delay(150)
     if (!messageStore.has(projectId)) {
-      messageStore.set(projectId, preloadedConversation.map(m => ({ ...m, projectId })))
+      messageStore.set(projectId, {
+        threadId: null,
+        messages: preloadedConversation.map(m => ({ ...m, projectId })),
+      })
     }
-    return { threadId: null, messages: messageStore.get(projectId)! }
+    return messageStore.get(projectId)!
   },
 
   async saveConversation(projectId, session) {
-    messageStore.set(projectId, session.messages)
+    messageStore.set(projectId, session)
   },
 
   async sendMessage(projectId, content, options?: ChatStreamHandlers) {
     await delay(100)
-    const messages = messageStore.get(projectId) ?? []
+    const session = messageStore.get(projectId) ?? { threadId: null, messages: [] }
+    const messages = session.messages
     const userMsg: ChatMessage = {
       id: `u${Date.now()}`,
       projectId,
@@ -91,7 +95,7 @@ export const mockChatService: IChatService = {
     }
     responseIndex++
     messages.push(agentMsg)
-    messageStore.set(projectId, messages)
+    messageStore.set(projectId, { ...session, messages })
     options?.onMessage?.(agentMsg.content)
 
     return agentMsg
