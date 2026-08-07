@@ -1,4 +1,4 @@
-import type { IChatService } from '../interfaces'
+import type { ChatSession, ChatStreamHandlers, IChatService } from '../interfaces'
 import type { ChatMessage } from '~/types/chat'
 
 function msg(id: string, projectId: string, role: ChatMessage['role'], content: string, minutesAgo: number): ChatMessage {
@@ -57,15 +57,19 @@ let responseIndex = 0
 const messageStore = new Map<string, ChatMessage[]>()
 
 export const mockChatService: IChatService = {
-  async getMessages(projectId) {
+  async getConversation(projectId): Promise<ChatSession> {
     await delay(150)
     if (!messageStore.has(projectId)) {
       messageStore.set(projectId, preloadedConversation.map(m => ({ ...m, projectId })))
     }
-    return messageStore.get(projectId)!
+    return { threadId: null, messages: messageStore.get(projectId)! }
   },
 
-  async sendMessage(projectId, content) {
+  async saveConversation(projectId, session) {
+    messageStore.set(projectId, session.messages)
+  },
+
+  async sendMessage(projectId, content, options?: ChatStreamHandlers) {
     await delay(100)
     const messages = messageStore.get(projectId) ?? []
     const userMsg: ChatMessage = {
@@ -88,6 +92,7 @@ export const mockChatService: IChatService = {
     responseIndex++
     messages.push(agentMsg)
     messageStore.set(projectId, messages)
+    options?.onMessage?.(agentMsg.content)
 
     return agentMsg
   },

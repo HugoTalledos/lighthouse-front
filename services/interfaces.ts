@@ -9,9 +9,20 @@ export interface IProjectService {
   updateProjectStatus(id: string, status: Project['status']): Promise<Project>
 }
 
+export interface ChatSession {
+  threadId: string | null
+  messages: ChatMessage[]
+}
+
+export interface ChatStreamHandlers {
+  onThreadId?: (threadId: string) => void
+  onMessage?: (content: string) => void
+}
+
 export interface IChatService {
-  getMessages(projectId: string): Promise<ChatMessage[]>
-  sendMessage(projectId: string, content: string): Promise<ChatMessage>
+  getConversation(projectId: string): Promise<ChatSession>
+  saveConversation(projectId: string, session: ChatSession): Promise<void>
+  sendMessage(projectId: string, content: string, options?: ChatStreamHandlers): Promise<ChatMessage>
 }
 
 export interface IPlaygroundService {
