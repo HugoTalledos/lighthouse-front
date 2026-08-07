@@ -120,3 +120,68 @@ Both commands exited with status 0.
 - `npm install --save-dev vitest` initially failed in the sandbox with `ENOTFOUND registry.npmjs.org`; it succeeded after approved network escalation.
 - The install normalized parts of the pre-existing `package-lock.json` in addition to adding Vitest. The pre-existing lockfile modification was preserved.
 - npm reported 7 existing audit vulnerabilities (2 moderate, 4 high, 1 critical); dependency remediation is outside this task.
+
+## Round 1 review fix
+
+### Changes
+
+- `services/chat/chatStorage.ts`: moved `getItem()` into the protected storage/parse path so storage read failures return an empty session; restricted persisted roles to `user`, `agent`, or `system`.
+- `services/chat/chatStorage.test.ts`: added coverage for throwing `getItem()` and invalid persisted roles.
+- `services/chat/sse.test.ts`: changed the fixture so SSE frame contents and delimiters span multiple stream chunks.
+- No package files, backend HTTP service, or UI files were changed in this fix.
+
+### Verification commands and output
+
+RED command after adding the regression tests:
+
+```bash
+npm test -- services/chat/sse.test.ts services/chat/chatStorage.test.ts
+```
+
+Observed output:
+
+```text
+Test Files  2 failed (2)
+Tests  3 failed | 4 passed (7)
+```
+
+The failures were the expected throwing `getItem`, invalid role acceptance, and initially malformed split-frame fixture.
+
+Focused GREEN command:
+
+```bash
+npm test -- services/chat/sse.test.ts services/chat/chatStorage.test.ts
+```
+
+Output:
+
+```text
+Test Files  2 passed (2)
+Tests  7 passed (7)
+```
+
+Full and static verification command:
+
+```bash
+npm test && npx vue-tsc --noEmit && git diff --check
+```
+
+Output:
+
+```text
+Test Files  2 passed (2)
+Tests  7 passed (7)
+exit_code=0
+```
+
+### Fix self-review
+
+- `loadChatSession` now treats `getItem()` exceptions the same as malformed JSON and returns `{ threadId: null, messages: [] }`.
+- Persisted message roles are checked against the `ChatMessage` union before the session is accepted.
+- The SSE test now splits the first frame before its JSON value, splits the second frame before its delimiter, and still asserts both events and Unicode/newline content.
+- No interface signatures or approved task boundaries changed.
+
+### Remaining concerns
+
+- The original package-lock normalization churn remains from Task 1; this fix made no further package-lock changes.
+- The previously reported npm audit vulnerabilities remain outside this task's scope.

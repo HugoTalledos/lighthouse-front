@@ -3,10 +3,10 @@ import type { ChatSession } from '../interfaces'
 const storageKey = (projectId: string) => `lighthouse:chat:${projectId}`
 
 export function loadChatSession(projectId: string): ChatSession {
-  const stored = getStorage()?.getItem(storageKey(projectId))
-  if (!stored) return emptySession()
-
   try {
+    const stored = getStorage()?.getItem(storageKey(projectId))
+    if (!stored) return emptySession()
+
     const parsed: unknown = JSON.parse(stored)
     if (!isChatSession(parsed)) return emptySession()
 
@@ -55,17 +55,21 @@ function isChatSession(value: unknown): value is ChatSession {
     const candidate = message as Partial<ChatMessageJson>
     return typeof candidate.id === 'string'
       && typeof candidate.projectId === 'string'
-      && typeof candidate.role === 'string'
+      && isChatRole(candidate.role)
       && typeof candidate.content === 'string'
       && typeof candidate.timestamp === 'string'
       && !Number.isNaN(new Date(candidate.timestamp).getTime())
   })
 }
 
+function isChatRole(role: unknown): role is ChatMessageJson['role'] {
+  return role === 'user' || role === 'agent' || role === 'system'
+}
+
 interface ChatMessageJson {
   id: string
   projectId: string
-  role: string
+  role: 'user' | 'agent' | 'system'
   content: string
   timestamp: string
 }

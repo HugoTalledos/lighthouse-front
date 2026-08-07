@@ -4,6 +4,7 @@ import { loadChatSession, saveChatSession } from './chatStorage'
 
 class FakeStorage implements Storage {
   private values = new Map<string, string>()
+  shouldThrowOnGetItem = false
 
   get length() {
     return this.values.size
@@ -14,6 +15,7 @@ class FakeStorage implements Storage {
   }
 
   getItem(key: string) {
+    if (this.shouldThrowOnGetItem) throw new Error('storage unavailable')
     return this.values.get(key) ?? null
   }
 
@@ -66,6 +68,28 @@ describe('chat storage', () => {
     const storage = new FakeStorage()
     globalThis.window = { localStorage: storage } as Window & typeof globalThis
     storage.setItem('lighthouse:chat:p-1', '{"threadId":42,"messages":[]}')
+
+    expect(loadChatSession('p-1')).toEqual({ threadId: null, messages: [] })
+  })
+
+  it('returns an empty session when storage getItem throws', () => {
+    const storage = new FakeStorage()
+    storage.shouldThrowOnGetItem = true
+    globalThis.window = { localStorage: storage } as Window & typeof globalThis
+
+    expect(loadChatSession('p-1')).toEqual({ threadId: null, messages: [] })
+  })
+
+  it('returns an empty session when a stored message has an invalid role', () => {
+    const storage = new FakeStorage()
+    globalThis.window = { localStorage: storage } as Window & typeof globalThis
+    storage.setItem('lighthouse:chat:p-1', JSON.stringify({
+      threadId: 'thread-1',
+      messages: [{
+        id: 'm-1', projectId: 'p-1', role: 'tool', content: 'ignored',
+        timestamp: '2026-08-07T12:00:00.000Z',
+      }],
+    }))
 
     expect(loadChatSession('p-1')).toEqual({ threadId: null, messages: [] })
   })

@@ -21,8 +21,10 @@ async function collect<T>(generator: AsyncGenerator<T>): Promise<T[]> {
 describe('readSseEvents', () => {
   it('reassembles SSE frames split across stream chunks', async () => {
     const events = await collect(readSseEvents(streamFrom([
-      'event: start\ndata: {"thread_id":"t-1"}\n\n',
-      'event: message\ndata: {"content":"línea 1\\nlínea 2"}\n\n',
+      'event: start\ndata: {"thread_id":"t-',
+      '1"}\n\n',
+      'event: message\ndata: {"content":"línea 1\\nlínea 2"}',
+      '\n\n',
     ])))
 
     expect(events).toEqual([
