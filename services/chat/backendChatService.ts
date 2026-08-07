@@ -24,13 +24,14 @@ export function createBackendChatService(config: BackendChatServiceConfig): ICha
 
     async sendMessage(projectId: string, content: string, options?: ChatStreamHandlers): Promise<ChatMessage> {
       const session = loadChatSession(projectId)
+      const threadId = options && 'threadId' in options ? options.threadId : session.threadId
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (config.apiKey) headers['x-api-key'] = config.apiKey
 
       const response = await fetcher(`${baseUrl}/chat`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ message: content, thread_id: session.threadId }),
+        body: JSON.stringify({ message: content, thread_id: threadId }),
       })
 
       if (!response.ok) throw new Error(`Chat request failed: ${response.status} ${response.statusText}`)

@@ -94,6 +94,19 @@ describe('backend chat service', () => {
     await expect(service.getConversation('p-1')).resolves.toEqual(session)
   })
 
+  it('sends an explicitly provided thread ID without requiring saved storage', async () => {
+    const fetcher = vi.fn().mockResolvedValue(responseFrom([
+      'event: done\ndata: {"thread_id":"explicit-thread","project_id":"p-1"}\n\n',
+    ]))
+    const service = createBackendChatService({ baseUrl: 'http://localhost:8000', fetch: fetcher })
+
+    await service.sendMessage('p-1', 'Siguiente mensaje', { threadId: 'explicit-thread' })
+
+    expect(fetcher).toHaveBeenCalledWith('http://localhost:8000/chat', expect.objectContaining({
+      body: JSON.stringify({ message: 'Siguiente mensaje', thread_id: 'explicit-thread' }),
+    }))
+  })
+
   it('throws when the chat request is not successful', async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response('unavailable', { status: 503, statusText: 'Unavailable' }))
     const service = createBackendChatService({ baseUrl: 'http://localhost:8000', fetch: fetcher })

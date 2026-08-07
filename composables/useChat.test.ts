@@ -34,6 +34,7 @@ describe('useChat', () => {
     await vi.waitFor(() => expect(service.sendMessage).toHaveBeenCalledTimes(1))
 
     expect(service.sendMessage).toHaveBeenCalledWith('p-1', 'Sigue', expect.objectContaining({
+      threadId: 'saved-thread',
       onThreadId: expect.any(Function), onMessage: expect.any(Function),
     }))
     expect(chat.messages.value).toMatchObject([

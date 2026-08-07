@@ -58,6 +58,7 @@ export function useChat(projectId: string, service: IChatService = getChatServic
     try {
       await saveSession()
       const agentMsg = await service.sendMessage(projectId, content.trim(), {
+        threadId: threadId.value,
         onThreadId(value) {
           threadId.value = value
           void saveSession().catch(e => setError(e, 'Error al guardar la conversación'))

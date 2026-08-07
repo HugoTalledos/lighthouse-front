@@ -84,3 +84,56 @@ exit 0
 ## Concerns
 
 No open concerns. The direct Vitest environment does not resolve Nuxt `~` runtime aliases, so `useChat` now uses equivalent relative runtime imports to keep the composable independently testable.
+
+## Review Round 1 Addendum
+
+### Finding and resolution
+
+The review found that the restored thread was only persisted as an implicit dependency of the backend storage implementation. That meant injected `IChatService` implementations received callbacks but no explicit current thread. The public `useChat(projectId)` API remains unchanged.
+
+`ChatStreamHandlers` now includes `threadId?: string | null`. `useChat` passes its restored current value in the service options. `createBackendChatService` uses that option when the property is present and falls back to the saved session only when callers omit it; property-presence checking retains an explicitly provided `null` as a valid value.
+
+### TDD clarification and evidence
+
+The first original test attempt stopped before test collection because this direct Vitest setup could not resolve the existing Nuxt `~/services` runtime alias. Changing that runtime import to its equivalent relative path was test-harness setup remediation, not feature behavior implementation. After resolution, the behavioral test was run against the prior callback-only composable and failed before the streaming/session behavior was implemented, as recorded above.
+
+For this review fix, focused regression tests were written before changing the contract or implementation. Their RED execution was:
+
+```text
+npm test -- composables/useChat.test.ts services/chat/backendChatService.test.ts
+Test Files  2 failed (2)
+Tests  2 failed | 8 passed (10)
+
+useChat: expected options.threadId to equal "saved-thread"; received callbacks only
+backendChatService: expected request thread_id "explicit-thread"; received null
+```
+
+The same focused command after implementation was GREEN:
+
+```text
+Test Files  2 passed (2)
+Tests  10 passed (10)
+```
+
+### Review-fix verification
+
+```text
+npm test
+Test Files  4 passed (4)
+Tests  17 passed (17)
+
+npx vue-tsc --noEmit
+exit 0
+
+git diff --check
+exit 0
+```
+
+### Files updated in Round 1
+
+- `services/interfaces.ts`
+- `composables/useChat.ts`
+- `composables/useChat.test.ts`
+- `services/chat/backendChatService.ts`
+- `services/chat/backendChatService.test.ts`
+- This report

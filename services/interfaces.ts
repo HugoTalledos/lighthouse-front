@@ -15,6 +15,7 @@ export interface ChatSession {
 }
 
 export interface ChatStreamHandlers {
+  threadId?: string | null
   onThreadId?: (threadId: string) => void
   onMessage?: (content: string) => void
 }
