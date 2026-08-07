@@ -5,7 +5,8 @@ import type { ChatSession, IChatService } from '../services/interfaces'
 
 export function useChat(projectId: string, service: IChatService = getChatService()) {
   const messages = ref<ChatMessage[]>([])
-  const loading = ref(false)
+  const loading = ref(true)
+  const restorationReady = ref(false)
   const isTyping = ref(false)
   const error = ref<string | null>(null)
   const threadId = ref<string | null>(null)
@@ -33,6 +34,7 @@ export function useChat(projectId: string, service: IChatService = getChatServic
       const savedSession = await service.getConversation(projectId)
       messages.value = savedSession.messages
       threadId.value = savedSession.threadId
+      restorationReady.value = true
     } catch (e) {
       setError(e, 'Error desconocido')
     } finally {
@@ -41,7 +43,7 @@ export function useChat(projectId: string, service: IChatService = getChatServic
   }
 
   async function sendMessage(content: string) {
-    if (!content.trim() || isTyping.value) return
+    if (!restorationReady.value || !content.trim() || isTyping.value) return
 
     error.value = null
     const optimisticUser: ChatMessage = {
@@ -78,7 +80,7 @@ export function useChat(projectId: string, service: IChatService = getChatServic
           void saveSession().catch(e => setError(e, 'Error al guardar la conversación'))
         },
       })
-      if (!streamedAgent) messages.value.push(agentMsg)
+      if (!streamedAgent && agentMsg.content.trim()) messages.value.push(agentMsg)
       await saveSession()
     } catch (e) {
       setError(e, 'Error al enviar mensaje')

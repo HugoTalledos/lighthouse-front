@@ -16,6 +16,56 @@ function fakeChatService(session: ChatSession, send: IChatService['sendMessage']
 }
 
 describe('useChat', () => {
+  it('does not send or persist until the saved conversation has been restored', async () => {
+    const savedSession = { threadId: 'saved-thread', messages: [message('old-1', 'agent', 'Hola')] }
+    let restoreConversation!: (session: ChatSession) => void
+    const service: IChatService = {
+      getConversation: vi.fn(() => new Promise(resolve => { restoreConversation = resolve })),
+      saveConversation: vi.fn().mockResolvedValue(undefined),
+      sendMessage: vi.fn().mockResolvedValue(message('agent-1', 'agent', 'Listo')),
+    }
+    const chat = useChat('p-1', service)
+
+    await chat.sendMessage('Antes de montar')
+
+    expect(service.getConversation).not.toHaveBeenCalled()
+    expect(service.sendMessage).not.toHaveBeenCalled()
+    expect(service.saveConversation).not.toHaveBeenCalled()
+
+    const restoring = chat.fetchMessages()
+    await chat.sendMessage('Mensaje temprano')
+
+    expect(service.sendMessage).not.toHaveBeenCalled()
+    expect(service.saveConversation).not.toHaveBeenCalled()
+    expect(chat.messages.value).toEqual([])
+
+    restoreConversation(savedSession)
+    await restoring
+    await chat.sendMessage('Continúa')
+
+    expect(service.sendMessage).toHaveBeenCalledWith('p-1', 'Continúa', expect.objectContaining({
+      threadId: 'saved-thread',
+    }))
+    expect(service.saveConversation).toHaveBeenCalledWith('p-1', expect.objectContaining({
+      threadId: 'saved-thread',
+      messages: expect.arrayContaining([expect.objectContaining({ role: 'user', content: 'Continúa' })]),
+    }))
+  })
+
+  it('does not add an empty agent message for a tool-only response', async () => {
+    const service = fakeChatService({ threadId: 'saved-thread', messages: [] }, async () => {
+      return message('agent-1', 'agent', '')
+    })
+    const chat = useChat('p-1', service)
+
+    await chat.fetchMessages()
+    await chat.sendMessage('Busca información')
+
+    expect(chat.messages.value).toMatchObject([
+      { role: 'user', content: 'Busca información' },
+    ])
+  })
+
   it('continues a saved thread and updates the agent bubble while streaming', async () => {
     const savedSession = { threadId: 'saved-thread', messages: [message('old-1', 'agent', 'Hola')] }
     let finishStream!: () => void

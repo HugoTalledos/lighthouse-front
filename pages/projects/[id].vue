@@ -13,7 +13,7 @@ const projectId = route.params.id as string
 const project = ref<Project | undefined>()
 const showPlayground = ref(false)
 
-const { messages, isTyping, error, fetchMessages, sendMessage } = useChat(projectId)
+const { messages, loading: chatLoading, isTyping, error, fetchMessages, sendMessage } = useChat(projectId)
 const { plan, loading: planLoading, approving, approved, fetchPlan, approvePlan } = usePlayground(projectId)
 
 onMounted(async () => {
@@ -104,7 +104,7 @@ onUnmounted(() => {
           :messages="messages"
           :is-typing="isTyping"
           :error="error"
-          :disabled="isTyping"
+          :disabled="chatLoading || isTyping"
           @send="sendMessage"
         />
       </main>

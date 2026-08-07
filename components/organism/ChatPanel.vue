@@ -19,7 +19,7 @@ function scrollToBottom() {
   })
 }
 
-watch(() => props.messages.length, scrollToBottom)
+watch(() => props.messages.map(message => message.content), scrollToBottom)
 watch(() => props.isTyping, scrollToBottom)
 </script>
 
