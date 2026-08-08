@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useChat } from '~/composables/useChat'
-import { usePlayground } from '~/composables/usePlayground'
 import { getProjectService } from '~/services'
+import { toGeneratedPlan } from '~/services/projects/projectResourceView'
 import type { Project } from '~/types/project'
 
 const route = useRoute()
@@ -11,24 +11,24 @@ const router = useRouter()
 const projectId = route.params.id as string
 
 const project = ref<Project | undefined>()
+const projectLoading = ref(true)
 const showPlayground = ref(false)
+const plan = computed(() => project.value ? toGeneratedPlan(project.value) : null)
 
 const { messages, loading: chatLoading, isTyping, error, fetchMessages, sendMessage } = useChat(projectId)
-const { plan, loading: planLoading, approving, approved, fetchPlan, approvePlan } = usePlayground(projectId)
 
 onMounted(async () => {
-  const svc = getProjectService()
-  project.value = await svc.getProject(projectId)
-  await Promise.all([fetchMessages(project.value?.thread_ids[0]), fetchPlan()])
+  try {
+    project.value = await getProjectService().getProject(projectId)
+    await fetchMessages(project.value?.thread_ids[0])
+  } finally {
+    projectLoading.value = false
+  }
 })
 
 async function handleSend(content: string) {
   await sendMessage(content)
   if (!error.value) project.value = await getProjectService().getProject(projectId)
-}
-
-async function handleApprove() {
-  await approvePlan()
 }
 
 // Resizable divider
@@ -144,11 +144,9 @@ onUnmounted(() => {
 
         <OrganismPlaygroundSidebar
           :plan="plan"
-          :loading="planLoading"
-          :approving="approving"
-          :approved="approved"
+          :status="project?.status"
+          :loading="projectLoading"
           class="flex-1 min-h-0"
-          @approve="handleApprove"
         />
       </aside>
     </div>

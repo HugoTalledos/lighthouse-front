@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { GeneratedPlan } from '~/types/playground'
+import type { ProjectStatus } from '~/types/project'
 
 defineProps<{
   plan: GeneratedPlan | null
+  status?: ProjectStatus
   loading?: boolean
-  approving?: boolean
-  approved?: boolean
 }>()
-defineEmits<{ approve: [] }>()
 
 const activeTab = ref('landing')
 const tabs = [
@@ -36,7 +35,7 @@ const tabs = [
 
       <template v-else-if="plan">
         <MoleculeLandingPreview
-          v-if="activeTab === 'landing'"
+          v-if="activeTab === 'landing' && plan.landing"
           :url="plan.landing.url"
           :title="plan.landing.title"
           class="h-full"
@@ -46,9 +45,14 @@ const tabs = [
           :creatives="plan.creatives"
         />
         <MoleculeCampaignConfigForm
-          v-else-if="activeTab === 'campaign'"
+          v-else-if="activeTab === 'campaign' && plan.campaign"
           :config="plan.campaign"
         />
+        <div v-else class="flex flex-col items-center justify-center h-full gap-3 text-center p-6">
+          <p class="text-text-secondary font-body text-sm">
+            Este recurso todavía no ha sido generado por el agente.
+          </p>
+        </div>
       </template>
 
       <div v-else class="flex flex-col items-center justify-center h-full gap-3 text-center p-6">
@@ -58,27 +62,11 @@ const tabs = [
       </div>
     </div>
 
-    <!-- Footer action -->
     <div class="flex-shrink-0 px-4 pb-4 pt-3 border-t border-signal-dim">
-      <div
-        v-if="approved"
-        class="flex items-center gap-2 justify-center py-3 rounded-lg bg-emerald-900/20 border border-emerald-800/30"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M3 8l4 4 6-7" stroke="#34d399" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="text-sm font-body text-emerald-400">Plan aceptado</span>
+      <div class="flex items-center justify-center gap-2 py-3 rounded-lg bg-elevated border border-signal-dim">
+        <CellProjectStatusBadge v-if="status" :status="status" />
+        <span class="text-xs font-body text-text-muted">Aprueba recursos conversando con el agente.</span>
       </div>
-      <AtomBaseButton
-        v-else
-        variant="primary"
-        :loading="approving"
-        :disabled="!plan || approving"
-        class="w-full"
-        @click="$emit('approve')"
-      >
-        Aceptar plan y recursos
-      </AtomBaseButton>
     </div>
   </div>
 </template>

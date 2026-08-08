@@ -18,7 +18,7 @@ export interface CampaignConfig {
 }
 
 export interface GeneratedPlan {
-  landing: LandingAsset
+  landing: LandingAsset | null
   creatives: CampaignCreative[]
-  campaign: CampaignConfig
+  campaign: CampaignConfig | null
 }
