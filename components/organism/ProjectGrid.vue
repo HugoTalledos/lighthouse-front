@@ -24,7 +24,7 @@ defineEmits<{
     >
       <MoleculeProjectCard
         v-for="project in projects"
-        :key="project.id"
+        :key="project.project_id"
         :project="project"
         @click="$emit('open-project', project)"
       />

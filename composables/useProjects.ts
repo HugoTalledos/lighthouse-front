@@ -1,12 +1,11 @@
 import { ref } from 'vue'
 import type { Project } from '~/types/project'
-import { getProjectService } from '~/services'
+import { getProjectService } from '../services'
 
-export function useProjects() {
+export function useProjects(service = getProjectService()) {
   const projects = ref<Project[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-  const service = getProjectService()
 
   async function fetchProjects() {
     loading.value = true
@@ -20,18 +19,11 @@ export function useProjects() {
     }
   }
 
-  async function createProject(name: string, description: string) {
-    const project = await service.createProject(name, description)
+  async function createProject(threadId: string) {
+    const project = await service.createProject(threadId)
     projects.value.unshift(project)
     return project
   }
 
-  async function approveProject(id: string) {
-    const updated = await service.updateProjectStatus(id, 'validated')
-    const idx = projects.value.findIndex(p => p.id === id)
-    if (idx !== -1) projects.value[idx] = updated
-    return updated
-  }
-
-  return { projects, loading, error, fetchProjects, createProject, approveProject }
+  return { projects, loading, error, fetchProjects, createProject }
 }

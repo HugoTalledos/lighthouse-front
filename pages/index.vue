@@ -10,15 +10,12 @@ const { projects, loading, fetchProjects, createProject } = useProjects()
 onMounted(fetchProjects)
 
 async function handleOpenProject(project: Project) {
-  await router.push(`/projects/${project.id}`)
+  await router.push(`/projects/${project.project_id}`)
 }
 
 async function handleCreateProject() {
-  const project = await createProject(
-    'Nueva idea',
-    'Describe tu idea de negocio para que Lighthouse la valide.',
-  )
-  await router.push(`/projects/${project.id}`)
+  const project = await createProject(crypto.randomUUID())
+  await router.push(`/projects/${project.project_id}`)
 }
 </script>
 

@@ -4,28 +4,22 @@ import type { ProjectStatus } from '~/types/project'
 defineProps<{ status: ProjectStatus }>()
 
 const labels: Record<ProjectStatus, string> = {
-  draft: 'Borrador',
-  generating: 'Generando',
+  in_progress: 'En progreso',
   review: 'En revisión',
-  live: 'En vivo',
-  validated: 'Validado',
-  rejected: 'Rechazado',
+  approved: 'Aprobado',
 }
 
-const colors: Record<ProjectStatus, 'gray' | 'yellow' | 'blue' | 'green' | 'purple' | 'red'> = {
-  draft: 'gray',
-  generating: 'yellow',
+const colors: Record<ProjectStatus, 'gray' | 'yellow' | 'blue' | 'green'> = {
+  in_progress: 'gray',
   review: 'blue',
-  live: 'green',
-  validated: 'purple',
-  rejected: 'red',
+  approved: 'green',
 }
 </script>
 
 <template>
   <AtomBaseBadge :color="colors[status]">
     <span
-      v-if="status === 'generating'"
+      v-if="status === 'in_progress'"
       class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"
     />
     {{ labels[status] }}

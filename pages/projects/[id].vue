@@ -24,10 +24,6 @@ onMounted(async () => {
 
 async function handleApprove() {
   await approvePlan()
-  if (project.value) {
-    const svc = getProjectService()
-    project.value = await svc.updateProjectStatus(projectId, 'validated')
-  }
 }
 
 // Resizable divider
@@ -69,7 +65,7 @@ onUnmounted(() => {
   <div class="flex flex-col h-screen bg-base overflow-hidden">
     <OrganismAppHeader
       show-back
-      :project-name="project?.name"
+      :project-name="project?.business_name ?? 'Proyecto sin nombre'"
       @back="router.push('/')"
     >
       <template #actions>
