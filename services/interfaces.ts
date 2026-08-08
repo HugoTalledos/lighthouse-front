@@ -5,8 +5,7 @@ import type { GeneratedPlan } from '~/types/playground'
 export interface IProjectService {
   listProjects(): Promise<Project[]>
   getProject(id: string): Promise<Project | undefined>
-  createProject(name: string, description: string): Promise<Project>
-  updateProjectStatus(id: string, status: Project['status']): Promise<Project>
+  createProject(threadId: string): Promise<Project>
 }
 
 export interface ChatSession {
