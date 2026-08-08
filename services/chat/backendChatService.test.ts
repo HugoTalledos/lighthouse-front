@@ -67,7 +67,7 @@ describe('backend chat service', () => {
     expect(fetcher).toHaveBeenCalledWith('http://localhost:8000/chat', expect.objectContaining({
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': 'secret' },
-      body: JSON.stringify({ message: 'Hola', thread_id: null }),
+      body: JSON.stringify({ project_id: 'p-1', message: 'Hola', thread_id: null }),
     }))
     expect(onThreadId).toHaveBeenCalledWith('thread-2')
     expect(onMessage).toHaveBeenCalledWith('Respuesta')
@@ -89,7 +89,7 @@ describe('backend chat service', () => {
 
     expect(fetcher).toHaveBeenCalledWith('http://localhost:8000/chat', expect.objectContaining({
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'Siguiente mensaje', thread_id: 'thread-1' }),
+      body: JSON.stringify({ project_id: 'p-1', message: 'Siguiente mensaje', thread_id: 'thread-1' }),
     }))
     await expect(service.getConversation('p-1')).resolves.toEqual(session)
   })
@@ -103,7 +103,7 @@ describe('backend chat service', () => {
     await service.sendMessage('p-1', 'Siguiente mensaje', { threadId: 'explicit-thread' })
 
     expect(fetcher).toHaveBeenCalledWith('http://localhost:8000/chat', expect.objectContaining({
-      body: JSON.stringify({ message: 'Siguiente mensaje', thread_id: 'explicit-thread' }),
+      body: JSON.stringify({ project_id: 'p-1', message: 'Siguiente mensaje', thread_id: 'explicit-thread' }),
     }))
   })
 

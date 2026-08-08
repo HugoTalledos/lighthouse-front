@@ -19,8 +19,13 @@ const { plan, loading: planLoading, approving, approved, fetchPlan, approvePlan 
 onMounted(async () => {
   const svc = getProjectService()
   project.value = await svc.getProject(projectId)
-  await Promise.all([fetchMessages(), fetchPlan()])
+  await Promise.all([fetchMessages(project.value?.thread_ids[0]), fetchPlan()])
 })
+
+async function handleSend(content: string) {
+  await sendMessage(content)
+  if (!error.value) project.value = await getProjectService().getProject(projectId)
+}
 
 async function handleApprove() {
   await approvePlan()
@@ -101,7 +106,7 @@ onUnmounted(() => {
           :is-typing="isTyping"
           :error="error"
           :disabled="chatLoading || isTyping"
-          @send="sendMessage"
+          @send="handleSend"
         />
       </main>
 

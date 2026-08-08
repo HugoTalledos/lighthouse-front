@@ -27,13 +27,13 @@ export function useChat(projectId: string, service: IChatService = getChatServic
     error.value = e instanceof Error ? e.message : fallback
   }
 
-  async function fetchMessages() {
+  async function fetchMessages(initialThreadId?: string) {
     loading.value = true
     error.value = null
     try {
       const savedSession = await service.getConversation(projectId)
       messages.value = savedSession.messages
-      threadId.value = savedSession.threadId
+      threadId.value = savedSession.threadId ?? initialThreadId ?? null
       restorationReady.value = true
     } catch (e) {
       setError(e, 'Error desconocido')

@@ -66,6 +66,20 @@ describe('useChat', () => {
     ])
   })
 
+  it('uses the project thread when no saved thread exists', async () => {
+    const service = fakeChatService({ threadId: null, messages: [] }, async () => {
+      return message('agent-1', 'agent', 'Listo')
+    })
+    const chat = useChat('p-1', service)
+
+    await chat.fetchMessages('thread-1')
+    await chat.sendMessage('Hola')
+
+    expect(service.sendMessage).toHaveBeenCalledWith('p-1', 'Hola', expect.objectContaining({
+      threadId: 'thread-1',
+    }))
+  })
+
   it('continues a saved thread and updates the agent bubble while streaming', async () => {
     const savedSession = { threadId: 'saved-thread', messages: [message('old-1', 'agent', 'Hola')] }
     let finishStream!: () => void

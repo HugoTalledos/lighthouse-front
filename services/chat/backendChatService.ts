@@ -31,7 +31,7 @@ export function createBackendChatService(config: BackendChatServiceConfig): ICha
       const response = await fetcher(`${baseUrl}/chat`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ message: content, thread_id: threadId }),
+        body: JSON.stringify({ project_id: projectId, message: content, thread_id: threadId }),
       })
 
       if (!response.ok) throw new Error(`Chat request failed: ${response.status} ${response.statusText}`)
