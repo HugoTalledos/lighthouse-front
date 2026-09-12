@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { CampaignCreative } from '~/types/playground'
 
 defineProps<{ creatives: CampaignCreative[] }>()
+
+const selected = ref<CampaignCreative | null>(null)
 </script>
 
 <template>
@@ -12,15 +15,22 @@ defineProps<{ creatives: CampaignCreative[] }>()
         :key="creative.id"
         class="group relative rounded-lg overflow-hidden border border-signal-dim bg-elevated"
       >
-        <img
-          :src="creative.imageUrl"
-          :alt="creative.title"
-          class="w-full aspect-square object-cover"
-          loading="lazy"
-        />
-        <div class="absolute inset-0 bg-base/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-2 p-2">
+        <button
+          type="button"
+          class="block w-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal"
+          :aria-label="`Ver ${creative.title} en tamaño completo`"
+          @click="selected = creative"
+        >
+          <img
+            :src="creative.imageUrl"
+            :alt="creative.title"
+            class="w-full aspect-square object-cover"
+            loading="lazy"
+          />
+        </button>
+        <div class="absolute inset-0 bg-base/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-2 p-2 pointer-events-none">
           <span class="text-xs font-mono text-text-primary text-center leading-tight">{{ creative.title }}</span>
-          <div class="flex gap-2">
+          <div class="flex gap-2 pointer-events-auto">
             <button
               type="button"
               class="px-2 py-1 text-xs font-body bg-signal text-white rounded hover:bg-[#4E8FE0] transition-colors"
@@ -40,5 +50,11 @@ defineProps<{ creatives: CampaignCreative[] }>()
         </div>
       </div>
     </div>
+    <MoleculeImageLightbox
+      :open="selected !== null"
+      :src="selected?.imageUrl"
+      :alt="selected?.title"
+      @close="selected = null"
+    />
   </div>
 </template>
