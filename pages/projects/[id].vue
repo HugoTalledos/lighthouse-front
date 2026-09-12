@@ -15,7 +15,7 @@ const projectLoading = ref(true)
 const showPlayground = ref(false)
 const plan = computed(() => project.value ? toGeneratedPlan(project.value) : null)
 
-const { messages, loading: chatLoading, isTyping, error, fetchMessages, sendMessage } = useChat(projectId)
+const { messages, loading: chatLoading, isTyping, error, activity, fetchMessages, sendMessage } = useChat(projectId)
 
 onMounted(async () => {
   try {
@@ -74,18 +74,22 @@ onUnmounted(() => {
       @back="router.push('/')"
     >
       <template #actions>
-        <!-- Mobile: toggle playground drawer -->
-        <AtomBaseButton
-          variant="ghost"
-          class="lg:hidden"
-          @click="showPlayground = !showPlayground"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <rect x="2" y="2" width="5" height="12" rx="1" fill="currentColor" opacity="0.6"/>
-            <rect x="9" y="2" width="5" height="12" rx="1" fill="currentColor"/>
-          </svg>
-          Playground
-        </AtomBaseButton>
+        <div class="flex items-center gap-3">
+          <CellAgentActivityChip v-if="activity" :activity="activity" />
+
+          <!-- Mobile: toggle playground drawer -->
+          <AtomBaseButton
+            variant="ghost"
+            class="lg:hidden"
+            @click="showPlayground = !showPlayground"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="5" height="12" rx="1" fill="currentColor" opacity="0.6"/>
+              <rect x="9" y="2" width="5" height="12" rx="1" fill="currentColor"/>
+            </svg>
+            Playground
+          </AtomBaseButton>
+        </div>
       </template>
     </OrganismAppHeader>
 

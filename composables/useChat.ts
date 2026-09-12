@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { ChatMessage } from '../types/chat'
+import type { ChatMessage, ToolActivity } from '../types/chat'
 import { getChatService } from '../services'
 import type { ChatSession, IChatService } from '../services/interfaces'
 
@@ -10,6 +10,7 @@ export function useChat(projectId: string, service: IChatService = getChatServic
   const isTyping = ref(false)
   const error = ref<string | null>(null)
   const threadId = ref<string | null>(null)
+  const activity = ref<ToolActivity | null>(null)
   let pendingSave = Promise.resolve()
 
   function session(): ChatSession {
@@ -79,6 +80,9 @@ export function useChat(projectId: string, service: IChatService = getChatServic
           streamedAgent.content += chunk
           void saveSession().catch(e => setError(e, 'Error al guardar la conversación'))
         },
+        onToolActivity(value) {
+          activity.value = value
+        },
       })
       if (!streamedAgent && agentMsg.content.trim()) messages.value.push(agentMsg)
       await saveSession()
@@ -86,8 +90,9 @@ export function useChat(projectId: string, service: IChatService = getChatServic
       setError(e, 'Error al enviar mensaje')
     } finally {
       isTyping.value = false
+      activity.value = null
     }
   }
 
-  return { messages, loading, isTyping, error, fetchMessages, sendMessage }
+  return { messages, loading, isTyping, error, activity, fetchMessages, sendMessage }
 }

@@ -52,6 +52,45 @@ describe('useChat', () => {
     }))
   })
 
+  it('exposes the current tool activity while streaming and clears it when the turn ends', async () => {
+    let handlersReady!: (handlers: ChatStreamHandlers) => void
+    const handlersPromise = new Promise<ChatStreamHandlers>(resolve => { handlersReady = resolve })
+    let finish!: () => void
+    const service = fakeChatService({ threadId: 'saved-thread', messages: [] }, (_projectId, _content, options) => {
+      handlersReady(options!)
+      return new Promise(resolve => { finish = () => resolve(message('agent-1', 'agent', 'Listo')) })
+    })
+    const chat = useChat('p-1', service)
+
+    await chat.fetchMessages()
+    const sending = chat.sendMessage('Genera la landing')
+    const handlers = await handlersPromise
+
+    expect(chat.activity.value).toBeNull()
+    handlers.onToolActivity!({ name: 'landing_builder_tool', phase: 'running' })
+    expect(chat.activity.value).toEqual({ name: 'landing_builder_tool', phase: 'running' })
+    handlers.onToolActivity!({ name: 'landing_builder_tool', phase: 'done', status: 'success' })
+    expect(chat.activity.value).toEqual({ name: 'landing_builder_tool', phase: 'done', status: 'success' })
+
+    finish()
+    await sending
+    expect(chat.activity.value).toBeNull()
+  })
+
+  it('clears the tool activity when the turn fails', async () => {
+    const service = fakeChatService({ threadId: 'saved-thread', messages: [] }, async (_projectId, _content, options) => {
+      options?.onToolActivity?.({ name: 'landing_builder_tool', phase: 'running' })
+      throw new Error('boom')
+    })
+    const chat = useChat('p-1', service)
+
+    await chat.fetchMessages()
+    await chat.sendMessage('Genera la landing')
+
+    expect(chat.error.value).toBe('boom')
+    expect(chat.activity.value).toBeNull()
+  })
+
   it('does not add an empty agent message for a tool-only response', async () => {
     const service = fakeChatService({ threadId: 'saved-thread', messages: [] }, async () => {
       return message('agent-1', 'agent', '')

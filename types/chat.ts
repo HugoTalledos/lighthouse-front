@@ -12,3 +12,9 @@ export interface ChatTurn {
   userMessage: ChatMessage
   agentMessage?: ChatMessage
 }
+
+export interface ToolActivity {
+  name: string
+  phase: 'running' | 'done'
+  status?: string
+}

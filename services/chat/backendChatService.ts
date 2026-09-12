@@ -54,6 +54,19 @@ export function createBackendChatService(config: BackendChatServiceConfig): ICha
           }
         }
 
+        if (event.event === 'tool_call') {
+          const name = event.data.name
+          if (typeof name === 'string') options?.onToolActivity?.({ name, phase: 'running' })
+        }
+
+        if (event.event === 'tool_result') {
+          const name = event.data.name
+          const status = event.data.status
+          if (typeof name === 'string') {
+            options?.onToolActivity?.({ name, phase: 'done', status: typeof status === 'string' ? status : undefined })
+          }
+        }
+
         if (event.event === 'error') {
           const message = event.data.message
           throw new Error(typeof message === 'string' ? message : 'Backend chat error')

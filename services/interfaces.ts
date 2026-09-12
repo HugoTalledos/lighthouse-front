@@ -1,5 +1,5 @@
 import type { Project } from '~/types/project'
-import type { ChatMessage } from '~/types/chat'
+import type { ChatMessage, ToolActivity } from '~/types/chat'
 import type { GeneratedPlan } from '~/types/playground'
 
 export interface IProjectService {
@@ -17,6 +17,7 @@ export interface ChatStreamHandlers {
   threadId?: string | null
   onThreadId?: (threadId: string) => void
   onMessage?: (content: string) => void
+  onToolActivity?: (activity: ToolActivity) => void
 }
 
 export interface IChatService {

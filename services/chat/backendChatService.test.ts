@@ -75,6 +75,23 @@ describe('backend chat service', () => {
     expect(result.timestamp).toBeInstanceOf(Date)
   })
 
+  it('reports tool activity from tool_call and tool_result events', async () => {
+    const fetcher = vi.fn().mockResolvedValue(responseFrom([
+      'event: start\ndata: {"thread_id":"thread-2"}\n\n',
+      'event: tool_call\ndata: {"name":"image_builder_tool","args":{}}\n\n',
+      'event: tool_result\ndata: {"name":"image_builder_tool","status":"success","result":{}}\n\n',
+      'event: message\ndata: {"content":"Listo"}\n\n',
+      'event: done\ndata: {"thread_id":"thread-2","project_id":"p-1"}\n\n',
+    ]))
+    const onToolActivity = vi.fn()
+    const service = createBackendChatService({ baseUrl: 'http://localhost:8000', fetch: fetcher })
+
+    await service.sendMessage('p-1', 'Genera imágenes', { onToolActivity })
+
+    expect(onToolActivity).toHaveBeenNthCalledWith(1, { name: 'image_builder_tool', phase: 'running' })
+    expect(onToolActivity).toHaveBeenNthCalledWith(2, { name: 'image_builder_tool', phase: 'done', status: 'success' })
+  })
+
   it('sends the saved thread ID with a later message', async () => {
     const storage = new FakeStorage()
     globalThis.window = { localStorage: storage } as Window & typeof globalThis
